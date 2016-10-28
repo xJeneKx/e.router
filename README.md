@@ -23,7 +23,7 @@ Route.head('/', function *() {
 
 Route.get('/user/:id/:photo', function *() {
     this.body = this.params;
-    // or
+    // or 
     // this.body = this.params.id;
 });
 
@@ -50,6 +50,8 @@ index.js
 const users = require('./routes/users');
 
 Route.add('/users/', users);
+//or
+//Route.add(users); // without a prefix
 
 app.use(Route.R());
 app.listen(3000);
@@ -74,3 +76,15 @@ routes.get('/:id/photos', function *() { // /users/:id/photos
 
 module.exports = routes;
 ~~~
+
+### CORS
+~~~javascript
+app.use(Route.R({cors:{}})); // activate
+// or
+app.use(Route.R({cors: {Origin: 'example.com', Methods: 'GET', Headers: 'Origin'}}));
+~~~
+
+Default value
+- Access-Control-Allow-Origin: *
+- Access-Control-Allow-Methods: GET, POST, PUT, DELETE, HEAD
+- Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept
