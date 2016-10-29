@@ -1,5 +1,5 @@
 # e.router
-Easy routing in Koajs
+Easy routing in Koajs ES6
 
 ### Installation
 ~~~sh
