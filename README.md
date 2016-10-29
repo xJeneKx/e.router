@@ -31,7 +31,7 @@ app.use(Route.R());
 app.listen(3000);
 ~~~
 
-Run
+Run Node.js >= 7.0.0
 
 ~~~sh
 $ node --harmony index
