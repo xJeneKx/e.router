@@ -3,7 +3,7 @@ Easy routing in Koajs ES6
 
 ### Installation
 ~~~sh
-$ npm install e.router
+$ npm install e.router@0.0.4
 ~~~
 
 ### Examples
