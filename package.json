@@ -1,6 +1,6 @@
 {
   "name": "e.router",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "Easy routing in Koajs",
   "main": "index.js",
   "scripts": {

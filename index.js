@@ -78,18 +78,19 @@ Router.prototype.add = function (path, routes) {
 
 Router.prototype.R = function (params = {}) {
     let routes = this.routes;
-    return function *(next) {
-        let r = chPath(routes, this.method, this.path);
-        yield routeParams(params);
+    return async(ctx, next)=> {
+        let r = chPath(routes, ctx.method, ctx.path);
         if (r) {
-            if (this.method == 'HEAD') this.body = '';
-            this.params = r.params;
-            yield r.cb;
-            yield next;
+            if (ctx.method == 'HEAD') ctx.body = '';
+            ctx.params = r.params;
+            await r.cb(ctx, next);
+            await routeParams(params)(ctx);
+            await next();
         } else {
-            this.body = 'Not found';
-            this.status = 404;
-            yield next;
+            ctx.body = 'Not found';
+            ctx.status = 404;
+            await routeParams(params)(ctx);
+            await next();
         }
     }
 };
@@ -128,12 +129,11 @@ function chPath(routes, method, path) {
 }
 
 function routeParams(params) {
-    return function *() {
+    return async(ctx) => {
         if (params.cors) {
-            this.cors = {};
-            this.set('Access-Control-Allow-Origin', params.cors.Origin ? params.cors.Origin : '*');
-            this.set('Access-Control-Allow-Methods', params.cors.Methods ? params.cors.Methods : 'GET, POST, PUT, DELETE, HEAD');
-            this.set('Access-Control-Allow-Headers', params.cors.Headers ? params.cors.Headers : 'Origin, X-Requested-With, Content-Type, Accept');
+            ctx.set('Access-Control-Allow-Origin', params.cors.Origin ? params.cors.Origin : '*');
+            ctx.set('Access-Control-Allow-Methods', params.cors.Methods ? params.cors.Methods : 'GET, POST, PUT, DELETE, HEAD');
+            ctx.set('Access-Control-Allow-Headers', params.cors.Headers ? params.cors.Headers : 'Origin, X-Requested-With, Content-Type, Accept');
         }
     };
 }

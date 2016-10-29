@@ -1,5 +1,5 @@
 # e.router
-Easy routing in Koajs ES6
+Easy routing in Koajs ES7
 
 ### Installation
 ~~~sh
@@ -9,26 +9,32 @@ $ npm install e.router
 ### Examples
 ~~~javascript
 const koa = require('koa');
-const app = koa();
+const app = new koa();
 const Route = require('e.router')();
 
-Route.get('/', function *() {
-    this.body = '/';
+Route.get('/', async ctx => {
+    ctx.body = '/';
 });
 
-Route.head('/', function *() {
+Route.head('/', async ctx => {
     // Sending headers
-    this.set('test','true');
+    ctx.set('test', 'true');
 });
 
-Route.get('/user/:id/:photo', function *() {
-    this.body = this.params;
+Route.get('/user/:id/:photo', async ctx => {
+    ctx.body = ctx.params;
     // or 
-    // this.body = this.params.id;
+    // ctx.body = ctx.params.id;
 });
 
 app.use(Route.R());
 app.listen(3000);
+~~~
+
+Run
+
+~~~sh
+$ node --harmony index
 ~~~
 
 ### All methods
@@ -60,18 +66,18 @@ app.listen(3000);
 routes/users.js
 
 ~~~javascript
-const routes = require('e.router')();
+const routes = require('../lib/e.router')();
 
-routes.get('/', function *() { // /users/
-    this.body = '/users/';
+routes.get('/', async ctx => {
+    ctx.body = '/users/';
 });
 
-routes.get('/:id', function *() { // /users/:id
-    this.body = '/users/' + this.params.id;
+routes.get('/:id', async ctx => {
+    ctx.body = '/users/' + ctx.params.id;
 });
 
-routes.get('/:id/photos', function *() { // /users/:id/photos
-    this.body = '/users/' + this.params.id;
+routes.get('/:id/photos', async ctx => { // /users/:id/photos
+    ctx.body = '/users/' + ctx.params.id;
 });
 
 module.exports = routes;
