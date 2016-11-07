@@ -14,37 +14,37 @@ function Router() {
     };
 }
 
-Router.prototype.get = function (path, cb) {
+Router.prototype.get = function (path, ...cb) {
     _path = genPath(path);
     this.routes.GET[_path.path] = {reg: new RegExp(_path.path, 'i'), params: _path.params, cb: cb};
     return this;
 };
 
-Router.prototype.post = function (path, cb) {
+Router.prototype.post = function (path, ...cb) {
     _path = genPath(path);
     this.routes.POST[_path.path] = {reg: new RegExp(_path.path, 'i'), params: _path.params, cb: cb};
     return this;
 };
 
-Router.prototype.put = function (path, cb) {
+Router.prototype.put = function (path, ...cb) {
     _path = genPath(path);
     this.routes.PUT[_path.path] = {reg: new RegExp(_path.path, 'i'), params: _path.params, cb: cb};
     return this;
 };
 
-Router.prototype.delete = function (path, cb) {
+Router.prototype.delete = function (path, ...cb) {
     _path = genPath(path);
     this.routes.DELETE[_path.path] = {reg: new RegExp(_path.path, 'i'), params: _path.params, cb: cb};
     return this;
 };
 
-Router.prototype.head = function (path, cb) {
+Router.prototype.head = function (path, ...cb) {
     _path = genPath(path);
     this.routes.HEAD[_path.path] = {reg: new RegExp(_path.path, 'i'), params: _path.params, cb: cb};
     return this;
 };
 
-Router.prototype.other = function (method, path, cb) {
+Router.prototype.other = function (method, path, ...cb) {
     _path = genPath(path);
     method = method.toUpperCase();
     if (!this.routes[method]) this.routes[method] = {};
@@ -83,7 +83,9 @@ Router.prototype.R = function (params = {}) {
         if (r) {
             if (ctx.method == 'HEAD') ctx.body = '';
             ctx.params = r.params;
-            await r.cb(ctx, next);
+            for (let a = 0, l = r.cb.length; a < l; a++) {
+                await r.cb[a](ctx, next);
+            }
             await routeParams(params)(ctx);
             await next();
         } else {

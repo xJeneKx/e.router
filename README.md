@@ -13,6 +13,8 @@ const app = new koa();
 const Route = require('e.router')();
 
 Route.get('/', async ctx => {
+    ctx.set('test', 'ok');
+}, async ctx => {
     ctx.body = '/';
 });
 
@@ -21,7 +23,7 @@ Route.head('/', async ctx => {
     ctx.set('test', 'true');
 });
 
-Route.get('/user/:id/:photo', async ctx => {
+Route.get('/user/:id/:photo', async (ctx) => {
     ctx.body = ctx.params;
     // or 
     // ctx.body = ctx.params.id;
@@ -39,12 +41,12 @@ $ node --harmony index
 
 ### All methods
 ~~~javascript
-Route.get('/', middleware);
-Route.post('/', middleware);
-Route.put('/', middleware);
-Route.delete('/', middleware);
-Route.head('/', middleware);
-Route.other('options', '/', middleware);
+Route.get('/', ...middleware);
+Route.post('/', ...middleware);
+Route.put('/', ...middleware);
+Route.delete('/', ...middleware);
+Route.head('/', ...middleware);
+Route.other('options', '/', ...middleware);
 ~~~
 
 ### Adding routing
