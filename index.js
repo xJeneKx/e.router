@@ -15,40 +15,39 @@ function Router() {
 }
 
 Router.prototype.get = function (path, ...cb) {
-    _path = genPath(path);
-    this.routes.GET[_path.path] = {reg: new RegExp(_path.path, 'i'), params: _path.params, cb: cb};
-    return this;
+    return this.addRoute('GET', path, cb);
 };
 
 Router.prototype.post = function (path, ...cb) {
-    _path = genPath(path);
-    this.routes.POST[_path.path] = {reg: new RegExp(_path.path, 'i'), params: _path.params, cb: cb};
-    return this;
+    return this.addRoute('POST', path, cb);
 };
 
 Router.prototype.put = function (path, ...cb) {
-    _path = genPath(path);
-    this.routes.PUT[_path.path] = {reg: new RegExp(_path.path, 'i'), params: _path.params, cb: cb};
-    return this;
+    return this.addRoute('PUT', path, cb);
 };
 
 Router.prototype.delete = function (path, ...cb) {
-    _path = genPath(path);
-    this.routes.DELETE[_path.path] = {reg: new RegExp(_path.path, 'i'), params: _path.params, cb: cb};
-    return this;
+    return this.addRoute('DELETE', path, cb);
 };
 
 Router.prototype.head = function (path, ...cb) {
-    _path = genPath(path);
-    this.routes.HEAD[_path.path] = {reg: new RegExp(_path.path, 'i'), params: _path.params, cb: cb};
-    return this;
+    return this.addRoute('HEAD', path, cb);
 };
 
 Router.prototype.other = function (method, path, ...cb) {
+    return this.addRoute(method, path, cb);
+};
+
+Router.prototype.addRoute = function (method, path, cb) {
+    if (typeof path != 'string') return console.error(new Error('Incorrect function parameters'));
     _path = genPath(path);
     method = method.toUpperCase();
     if (!this.routes[method]) this.routes[method] = {};
-    this.routes[method][_path.path] = {reg: new RegExp(_path.path, 'i'), params: _path.params, cb: cb};
+    if (this.routes[method][_path.path]) {
+        this.routes[method][_path.path].cb = this.routes[method][_path.path].cb.concat(cb);
+    } else {
+        this.routes[method][_path.path] = {reg: new RegExp(_path.path, 'i'), params: _path.params, cb: cb};
+    }
     return this;
 };
 
@@ -68,8 +67,12 @@ Router.prototype.add = function (path, routes) {
             for (let _path in routes[method]) {
                 if (routes[method].hasOwnProperty(_path)) {
                     fPath = path + (_path.substr(1));
-                    this.routes[method][fPath] = routes[method][_path];
-                    this.routes[method][fPath].reg = new RegExp(fPath, 'i');
+                    if (this.routes[method][fPath]) {
+                        this.routes[method][fPath].cb = this.routes[method][fPath].cb.concat(routes[method][_path].cb);
+                    } else {
+                        this.routes[method][fPath] = routes[method][_path];
+                        this.routes[method][fPath].reg = new RegExp(fPath, 'i');
+                    }
                 }
             }
         }
@@ -79,19 +82,17 @@ Router.prototype.add = function (path, routes) {
 Router.prototype.R = function (params = {}) {
     let routes = this.routes;
     return async(ctx, next)=> {
-        let r = chPath(routes, ctx.method, ctx.path);
+        let r = chPath(routes, ctx.method, ctx.path), rcb;
         if (r) {
             if (ctx.method == 'HEAD') ctx.body = '';
             ctx.params = r.params;
-            for (let a = 0, l = r.cb.length; a < l; a++) {
-                await r.cb[a](ctx, next);
-            }
-            await routeParams(params)(ctx);
+            routeParams(params)(ctx);
+            await _next(r.cb, 0, ctx);
             await next();
         } else {
             ctx.body = 'Not found';
             ctx.status = 404;
-            await routeParams(params)(ctx);
+            routeParams(params)(ctx);
             await next();
         }
     }
@@ -100,6 +101,7 @@ Router.prototype.R = function (params = {}) {
 //Generation path
 function genPath(path) {
     let p = path.match(/(:[a-z0-9_]+)/gi);
+    path = path.replace(/\*/g, '?.+');
     if (!p) return {path: '^' + (path == '/' ? '\\/?' : path.replace(/\//g, '\\/')) + '$', params: {}};
     let l = p.length, params = [];
     path = path.replace(/\//g, '\\/');
@@ -131,11 +133,18 @@ function chPath(routes, method, path) {
 }
 
 function routeParams(params) {
-    return async(ctx) => {
+    return (ctx) => {
         if (params.cors) {
             ctx.set('Access-Control-Allow-Origin', params.cors.Origin ? params.cors.Origin : '*');
             ctx.set('Access-Control-Allow-Methods', params.cors.Methods ? params.cors.Methods : 'GET, POST, PUT, DELETE, HEAD');
             ctx.set('Access-Control-Allow-Headers', params.cors.Headers ? params.cors.Headers : 'Origin, X-Requested-With, Content-Type, Accept');
         }
     };
+}
+
+async function _next(cb, n, ctx) {
+    if (!cb[n]) return;
+    return await cb[n](ctx, function () {
+        return _next(cb, ++n, ctx);
+    });
 }

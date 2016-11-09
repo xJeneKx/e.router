@@ -12,8 +12,9 @@ const koa = require('koa');
 const app = new koa();
 const Route = require('e.router')();
 
-Route.get('/', async ctx => {
+Route.get('/', async(ctx, next) => {
     ctx.set('test', 'ok');
+    await next();
 }, async ctx => {
     ctx.body = '/';
 });
@@ -23,10 +24,13 @@ Route.head('/', async ctx => {
     ctx.set('test', 'true');
 });
 
-Route.get('/user/:id/:photo', async (ctx) => {
-    ctx.body = ctx.params;
-    // or 
-    // ctx.body = ctx.params.id;
+Route.get('/user/:id/:photo', async(ctx, next) => {
+    ctx.body = 'params id: ';
+    await next();
+});
+
+Route.get('/user/:id/:photo', async(ctx) => {
+    ctx.body += ctx.params.id;
 });
 
 app.use(Route.R());
