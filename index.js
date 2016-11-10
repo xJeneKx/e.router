@@ -90,8 +90,12 @@ Router.prototype.R = function (params = {}) {
             await _next(r.cb, 0, ctx);
             await next();
         } else {
-            ctx.body = 'Not found';
-            ctx.status = 404;
+            if(params.cors && ctx.method == 'OPTIONS'){
+                ctx.body = '';
+            }else{
+                ctx.body = 'Not found';
+                ctx.status = 404;
+            }
             routeParams(params)(ctx);
             await next();
         }
