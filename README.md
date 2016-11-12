@@ -7,6 +7,8 @@ $ npm install e.router
 ~~~
 
 ### Examples
+[Restfull API example](https://github.com/xJeneKx/e.rest)
+
 ~~~javascript
 const koa = require('koa');
 const app = new koa();
